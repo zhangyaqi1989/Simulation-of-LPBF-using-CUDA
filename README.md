@@ -66,6 +66,7 @@ GPU version
 >>> ./gpu_thermal <test_type>
 ```
 test_type = 1: load xyzs.txt and radius.txt from infiles/
+
 test_type = 2: initialize particle position and radius randomly
 
 CPU version will output temperatures of final time step to outfiles/temperatures.txt
