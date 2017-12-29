@@ -1,8 +1,8 @@
 # Simulation of Laser Powder Based Fusion (L-PBF) using CUDA
-In this project, both dynamic and thermal simulation of laser powder bed fusion are implemented using CUDA
+In this project, both dynamic and thermal simulation [1] of laser powder bed fusion are implemented using CUDA
 ## 1. Dynamic Simulation
 ### 1.1 Build Instructions
-On Linux
+On Linux PC
 
 ```
 >> cd dynamics/
@@ -39,9 +39,9 @@ Both CPU and GPU version will
 
 * output particle final position to xyzs.txt
 
-## 1. Thermal Simulation
-### 1.1 Build Instructions
-On Linux
+## 2. Thermal Simulation
+### 2.1 Build Instructions
+On Linux PC
 
 ```
 >> cd thermal/
@@ -56,7 +56,7 @@ On Euler (a multi-core supercomputer cluster)
 >> make -f makefile-euler clean
 >> make -f makefile-euler
 ```
-### 1.2 Run Instructions
+### 2.2 Run Instructions
 CPU version
 ```
 >> ./cpu_thermal <test_type>
@@ -73,4 +73,7 @@ CPU version will output temperatures of final time step to outfiles/temperatures
 
 GPU version will output temperatures of final time step to outfiles/temperatures_cuda.txt
 
-when test_type = 2, both CPU and GPU version will also output outfiles/xyzs_after.txt and outfiles/radius_after.txt which are the particle positions and radiuses initialized randomly. 
+When test_type = 2, both CPU and GPU version will also output outfiles/xyzs_after.txt and outfiles/radius_after.txt which are the particle positions and radiuses initialized randomly. 
+
+## References
+[1] Rishi Ganeriwala and Tarek I Zohdi.  A coupled discrete element-finite difference model of selective lasersintering. *Granular Matter*, 18 (2):21, 2016. 
