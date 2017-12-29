@@ -9,7 +9,6 @@
 #include "thermal.hpp"
 #include "utility.hpp"
 
-#define SCAN_LENGTH_RATIO (0.2)
 
 int main(int argc, char *argv[])
 {
@@ -73,8 +72,9 @@ int main(int argc, char *argv[])
   float_value_t y_zero = 0.5*TABLE_WIDTH;
 
   laser_t* laser_ptr = initLaser(x_zero, y_zero, z_zero);
+  printf("%s\n", "CPU simulation:");
   printf("number of particles = %d\n", particles->n_particles);
-  printf("intensity = %f\n", laser_ptr->intensity);
+  printf("Laser intensity = %f\n", laser_ptr->intensity);
   printf("start simulation\n");
 
   // thermal analysis

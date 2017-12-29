@@ -7,6 +7,7 @@
 #define DENSITY (7952.0)
 #define TABLE_LENGTH (0.001)
 #define TABLE_WIDTH (0.0005)
+#define SCAN_LENGTH_RATIO (0.3)
 
 // #define TABLE_LENGTH (0.002)
 // #define TABLE_WIDTH (0.001)

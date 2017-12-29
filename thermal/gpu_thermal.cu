@@ -8,7 +8,6 @@
 #include "utility.hpp"
 
 #define NUM_THREADS 1024
-#define SCAN_LENGTH_RATIO (0.2)
 
 #include "cuda_thermal.cuh"
 #include <random>
@@ -373,8 +372,9 @@ int main(int argc, char* argv[])
   float_value_t y_zero = 0.5*TABLE_WIDTH;
 
   laser_t* h_laser_ptr = initLaser(x_zero, y_zero, z_zero);
+  printf("%s\n", "GPU simulation:");
   printf("number of particles = %d\n", h_particles_ptr->n_particles);
-  printf("intensity = %f\n", h_laser_ptr->intensity);
+  printf("Layer intensity = %f\n", h_laser_ptr->intensity);
   printf("start simulation\n");
 
   laser_t* d_laser_ptr;
