@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
   float_value_t current_time = 0.0;
   float_value_t SCAN_LENGTH = TABLE_LENGTH * SCAN_LENGTH_RATIO;
   float_value_t end_time = SCAN_LENGTH/LASER_SCAN_SPEED;
-  int count = 0;
+  int curr_steps = 0;
   float_value_t conducts[N_PARTICLES] = {0};
   float_value_t temp_Ts[N_PARTICLES] = {0};
   while (current_time < end_time)
@@ -126,11 +126,17 @@ int main(int argc, char *argv[])
       particles->Ts[i] = temp_Ts[i];
     }
 
-    count += 1;
-    // printf("count = %d\n", count);
-    // if (count == 2) break;
+    if (curr_steps % 1000 == 0) 
+    {
+      std::string temp_file = "outfiles/temperatures_" + std::to_string(curr_steps) + ".txt";
+      writeFile(particles->Ts, particles->n_particles, 1, temp_file);
+    }
+    curr_steps += 1;
+
+    // printf("curr_steps = %d\n", curr_steps);
+    // if (curr_steps == 2) break;
   }
-  printf("number of steps = %d\n", count);
+  printf("number of steps = %d\n", curr_steps);
   printf("end simulation\n");
   std::string temp_file = "outfiles/temperatures.txt";
   writeFile(particles->Ts, particles->n_particles, 1, temp_file);

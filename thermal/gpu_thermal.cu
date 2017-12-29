@@ -429,7 +429,7 @@ int main(int argc, char* argv[])
     int num_blocks = (N_PARTICLES + NUM_THREADS - 1)/NUM_THREADS;
     thermalkernel<<<num_blocks, NUM_THREADS>>>(current_x, y_zero, z_zero, d_particles_ptr, d_laser_ptr);
 
-    // cudaDeviceSynchronize();
+    cudaDeviceSynchronize();
 
     count += 1;
     // if (count == 2) break;
