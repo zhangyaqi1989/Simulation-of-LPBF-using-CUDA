@@ -1,0 +1,5 @@
+1. add dynamic analysis functions in dynamics.cpp and dynamics.h
+
+2. add thermal analysis functions in thermal.cpp and thermal.h
+
+3. add other utility functions in utility.cpp and utility.h
