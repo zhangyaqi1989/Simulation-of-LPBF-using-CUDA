@@ -14,24 +14,31 @@
 #include<math.h>
 #include <time.h>
 
+// Nondimensionalization length
 #define C_bar (0.000027)
+// x left boundary 
 #define boundary_left (0)
-//length
-#define boundary_right (0.001)
-//width
-#define boundary_rear (0.0005)
+// x right boundary, length
+#define boundary_right (0.001) 
+// y lower boundary 
 #define boundary_front (0)
+// y upper boundary width
+#define boundary_rear (0.0005) 
+// z upper boundary, never used
 #define boundary_up (0.003)
+// z lower boundary, the substrate height
 #define boundary_bottom (0.000)
 
+// total particle number
 #define N_PARTICLES (512)
 
-//initial height 
+//initial particle height arange
 #define MAX_HEIGHT (0.00020)
 #define MIN_HEIGHT (0.00004)
 
 //mean radius
 #define MU (0.000027)
+//radius half bindwidth
 #define BIND (0.000010)
 
 #define zeta (0.1) 
@@ -48,22 +55,34 @@
 
 #define E_aster (E_modulus/(2-2*nu*nu))
 
-#define norm_x_ij sqrt((x_j[0]-x_i[0])*(x_j[0]-x_i[0])+(x_j[1]-x_i[1])*(x_j[1]-x_i[1])+(x_j[2]-x_i[2])*(x_j[2]-x_i[2])) 
 #define R_aster Rs[i]*Rs[j]/(Rs[i]+Rs[j])
-//#define E_aster Es[i]*Es[j]/(Es[i]*(1-Mus[i]*Mus[i])+Es[j]*(1-Mus[j]*Mus[j]))
+
+// These two are just for simplifying code
+#define norm_x_ij sqrt((x_j[0]-x_i[0])*(x_j[0]-x_i[0])+(x_j[1]-x_i[1])*(x_j[1]-x_i[1])+(x_j[2]-x_i[2])*(x_j[2]-x_i[2])) 
 #define norm_dxij sqrt((dx_j[0]-dx_i[0])*(dx_j[0]-dx_i[0])+(dx_j[1]-dx_i[1])*(dx_j[1]-dx_i[1])+(dx_j[2]-dx_i[2])*(dx_j[2]-dx_i[2]))
 
+// never used
 #define C_factor 0.0055  
 //sqrt(1/(4/3*rho*pi))
+
+// Nondimensionalization mass
 #define m_bar (4.0/3*M_PI*C_bar*C_bar*C_bar)
+// Nondimensionalization temporal coefficient
 #define omega_bar (sqrt(E_modulus/(2-2*nu*nu)*C_bar/m_bar))
+
+// coefficient to bound the contact force
 #define MAX_R 10
 
+// particle initial velocity
 #define v0 (0)
-#define TIME_STEP (5e-8*omega_bar) //maximal limit 0.0000001
+
+// time step, actual time step is 5e-8, multiply omega_bar for nondimensionalization
+#define TIME_STEP (5e-8*omega_bar) 
+
+// total simulation time
 #define TIME 0.1
 
-
+// size of a block
 #define BLOCKDIM 128
 typedef double float_value_t;
 typedef struct
@@ -90,18 +109,26 @@ void freeParticles(particles_t * particles, particles_t * dp);
 void copyParticles(particles_t * particles, particles_t * dp)
 {
 }
+
+// norm of r
 __device__ float_value_t norm(float_value_t* r)
 {
 	return sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
 }
+
+// dot product of r*r1
 __device__ float_value_t dot(float_value_t* r, float_value_t* r1)
 {
 	return (r[0] * r1[0] + r[1] * r1[1] + r[2] * r1[2]);
 }
+
+// dot product of r*(r2-r1)
 __device__ float_value_t dot3(float_value_t* r, float_value_t* r1, float_value_t* r2)
 {
 	return (r[0] * (r2[0]-r1[0]) + r[1] * (r2[1]-r1[1]) + r[2] * (r2[2]- r1[2]));
 }
+
+// addition for C = A + factor*B
 __global__ void vector_add(float_value_t* A, float_value_t *B, float_value_t *C, float_value_t factor, int N)
 {
 	int i = blockDim.x*blockIdx.x + threadIdx.x;
@@ -110,6 +137,8 @@ __global__ void vector_add(float_value_t* A, float_value_t *B, float_value_t *C,
 		C[i] = A[i] + factor*B[i];
 	}
 }
+
+// addition for x = x+2.0 / 6 * TIME_STEP*fy2 + 2.0 / 6 * TIME_STEP*fy3 + 1.0 / 6 * TIME_STEP*fy4_1;
 __global__ void vector_add3(float_value_t* x, float_value_t *fy2, float_value_t *fy3, float_value_t *fy4_1, int N)
 {
 	int i = blockDim.x*blockIdx.x + threadIdx.x;
@@ -118,6 +147,8 @@ __global__ void vector_add3(float_value_t* x, float_value_t *fy2, float_value_t 
 		x[i] = x[i] + 2.0 / 6 * TIME_STEP*fy2[i] + 2.0 / 6 * TIME_STEP*fy3[i] + 1.0 / 6 * TIME_STEP*fy4_1[i];
 	}
 }
+
+// intent to control energy not to increase, but actually never used
 __global__ void vel_checker(float_value_t* x, float_value_t* y, int N)
 {
 	int i = blockDim.x*blockIdx.x + threadIdx.x;
@@ -150,38 +181,51 @@ __global__ void vel_checker(float_value_t* x, float_value_t* y, int N)
 		}
 	}
 }
+
+// calculate velocity and acceleration
 __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, float_value_t *Es, float_value_t *Rs, float_value_t *Ms, float_value_t *Mus, float_value_t *v3s, float_value_t* x_input, float_value_t delta_t)
 {
 	int j = threadIdx.x;//blockDim.x*blockIdx.x+
 	int i = blockIdx.x;
+	
+	// shared memory for reduction of particle contact force
 	__shared__  float_value_t s_fcon[3 * N_PARTICLES];
+	// shared memory for reduction of particle friction force
 	__shared__  float_value_t s_ffric[3 * N_PARTICLES];
 
-	//float_value_t* x_i = &(part->xyzs[3 * i]);
-	//float_value_t* x_i = &(x_input[3 * i]);
+  // position of particle-i, multiply C_bar so now x_i is the dimensionalized coordinate
 	float_value_t x_i[3];
 	x_i[0] = x_input[3 * i]*C_bar;
 	x_i[1] = x_input[3 * i + 1] * C_bar;
 	x_i[2] = x_input[3 * i + 2] * C_bar;
-	//float_value_t* dx_i = &(part->vs[3 * i]);
-	//float_value_t* dx_i = &(x_input[3 * i + 3 * N_PARTICLES]);
+	
+	// velocity of particle-i, multiply omega_bar*C_bar so now dx_i is the dimensionalized velocity
 	float_value_t dx_i[3];
 	dx_i[0] = x_input[3 * i + 3 * N_PARTICLES] *omega_bar* C_bar;
 	dx_i[1] = x_input[3 * i + 1 + 3 * N_PARTICLES] * omega_bar* C_bar;
 	dx_i[2] = x_input[3 * i + 2 + 3 * N_PARTICLES] * omega_bar* C_bar;
 
+  // environmental drag
 	float_value_t F_env[3] = { 0 };
+	
+	// total contact force (particle+wall)
 	float_value_t F_con[3] = { 0 };
+	
+	// total friction force (particle+wall)
 	float_value_t F_fric[3] = { 0 };
 
+  // wall contact force 
 	float_value_t F_con_iw[3] = { 0 };
+	// wall friction force 
 	float_value_t F_fric_iw[3] = { 0 };
 
 
+  // environmental drag evaluation
 	F_env[0] = -6 * M_PI*mu_f*Rs[i] *dx_i[0];
 	F_env[1] = -6 * M_PI*mu_f*Rs[i] *dx_i[1];
 	F_env[2] = -6 * M_PI*mu_f*Rs[i] *dx_i[2];
 
+  // in every block, the N_PARTICLES-thread calculate the wall-interaction, including left wall, right wall, front wall, back wall, bottom wall,
 	if (j == N_PARTICLES)
 	{
 		float_value_t delta_iw = 0.0;
@@ -233,7 +277,9 @@ __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, 
 
 			//float_value_t normdxi = sqrt(dx_i[0] * dx_i[0] + dx_i[1] * dx_i[1] + dx_i[2] * dx_i[2])
 		}
-		// assume only collision with one wall
+		
+		
+		// evluation of wall-friction, ensure velocity not too small causing numeric singular value
 		if (norm(dx_i) <= 1e-30)
 		{
 			F_fric_iw[0] = 0;
@@ -247,8 +293,11 @@ __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, 
 			F_fric_iw[2] = mu_d*norm(F_con_iw)*(-dx_i[2]) / norm(dx_i);
 		}
 	}
+	
+	// for 0,...,j,...,N_PARTICLES-1 thread, every thread calculate its interaction with i-particle(if exists)
 	if (j < N_PARTICLES)
 	{
+    // i-particle should not interact with itself
 		if (i == j)
 		{
 			s_fcon[3 * j + 0] = 0;
@@ -260,25 +309,26 @@ __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, 
 		}
 		else
 		{
+      // position for j-particle
 			float_value_t x_j[3];
 			x_j[0] = x_input[3 * j] * C_bar;
 			x_j[1] = x_input[3 * j + 1] * C_bar;
 			x_j[2] = x_input[3 * j + 2] * C_bar;
-			//float_value_t* x_j = &(x_input[3 * j]);
-			//float_value_t* dx_j = &(x_input[3 * j + 3 * N_PARTICLES]);
+			
+      // velocity for j-particle
 			float_value_t dx_j[3];
 			dx_j[0] = x_input[3 * j + 3 * N_PARTICLES] * omega_bar* C_bar;
 			dx_j[1] = x_input[3 * j + 1 + 3 * N_PARTICLES] * omega_bar* C_bar;
 			dx_j[2] = x_input[3 * j + 2 + 3 * N_PARTICLES] * omega_bar* C_bar;
 
 
-
+      // overlap between i-particle and j-particle
 			float_value_t delta_ij = norm_x_ij - (Rs[i] + Rs[j]);
 			
+			
+			// negative overlap indicates a collision 
 			if (delta_ij < 0)
 			{
-				//if (abs(delta_ij) > 0.0001)
-				//	delta_ij = 0;
 				float_value_t v_delta_ij = ((x_j[0] - x_i[0])*(dx_j[0] - dx_i[0])+(x_j[1] - x_i[1])*(dx_j[1] - dx_i[1])+(x_j[2] - x_i[2])*(dx_j[2] - dx_i[2])) / (delta_ij + (Rs[i] + Rs[j]));
 
 				s_fcon[3 * j] = -4.0 / 3 * sqrt(R_aster)*E_aster*pow(abs(delta_ij), 1.5)*(x_j[0] - x_i[0]) / (delta_ij+ (Rs[i] + Rs[j])) -2 * zeta*sqrt(2 * E_aster* Ms[i] * Ms[j] / (Ms[i] + Ms[j])*sqrt(R_aster))*pow(abs(delta_ij), 0.25)*v_delta_ij*(x_j[0] - x_i[0]) / (delta_ij + (Rs[i] + Rs[j]));
@@ -311,7 +361,7 @@ __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, 
 		}
 	}
 	__syncthreads();
-	//hard coding here. Using 300 because N_PARTICLES/2==300)
+	// after syncronization it begins reduction to have the sum of s_fcon and s_ffric
 	if (j < N_PARTICLES / 2)
 	{
 		s_fcon[3 * j + 0] += s_fcon[3 * (j + N_PARTICLES / 2) + 0];
@@ -346,6 +396,9 @@ __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, 
 		__syncthreads();
 	}
 	__syncthreads();
+	// reduction finishes
+	
+	// the last thread sum forces of particle and wall
 	if (j == N_PARTICLES)
 	{
 		F_con[0] = s_fcon[0] + F_con_iw[0];
@@ -355,6 +408,7 @@ __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, 
 		F_fric[1] = s_ffric[1] + F_fric_iw[1];
 		F_fric[2] = s_ffric[2] + F_fric_iw[2];
 
+    // bound the contact force not to go wild
 		float_value_t r = norm(F_con) /  (Ms[i] * 9.8);
 		if (r>MAX_R)
 		{
@@ -366,10 +420,12 @@ __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, 
 			F_fric[2] = F_fric[2] / r * MAX_R;
 		}
 		
+		// velocity
 		res[3 * i] = v3s[3 * i + 0];
 		res[3 * i + 1] = v3s[3 * i + 1];
 		res[3 * i + 2] = v3s[3 * i + 2];
 
+    // acceleration
 		res[3 * i + 3 * N_PARTICLES] = (F_env[0] + F_con[0] + F_fric[0]) / (Ms[i] * C_bar* omega_bar *omega_bar);
 		res[3 * i + 1 + 3 * N_PARTICLES] = (F_env[1] + F_con[1] + F_fric[1]) / (Ms[i] * C_bar* omega_bar *omega_bar);
 		res[3 * i + 2 + 3 * N_PARTICLES] = (F_env[2] + F_con[2] + F_fric[2]+ g_grav*Ms[i]) / (Ms[i] * C_bar* omega_bar *omega_bar);
@@ -379,6 +435,8 @@ __global__ void f(float_value_t* res, float_value_t* res1, float_value_t coeff, 
 		//v3s[3 * i + 2] = v3s[3 * i + 2] + delta_t*res[3 * i + 2 + 3 * N_PARTICLES];
 	}
 	__syncthreads();
+	
+	// this actually acts as vector_add, so we save a kernel launch
 	if (i < N_PARTICLES)
 	{
 		if (j < 3)
@@ -455,19 +513,23 @@ int main(void)
 
 	printf("timestep: %e\nomega: %e\n", TIME_STEP, omega_bar);
 	double current_time = 0.0f;
+	
+	// when step++, one more percent of total time simulated
 	int step = 0;
+	
+	// nondimensionalized total time
 	double T_total = TIME*omega_bar;
+	
+	// this should never be true if the solution is stable
 	bool b_blowup = false;
 	while (current_time < T_total &&!b_blowup)
 	{
-
+    
+    
+    // RK-4, invoke f() four times, then an addition (vector_add3)
+    
 		f <<< N_PARTICLES, N_PARTICLES + 1 >>> (fy1, y2, 0.5*TIME_STEP, (dp->E), (dp->rs), (dp->ms), (dp->mu), &(x[3 * N_PARTICLES]), x, 0);
 		//vector_add <<< (6 * N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>> (x, fy1, y2, 0.5*TIME_STEP, 6 * N_PARTICLES);
-		cudaError_t e = cudaGetLastError();
-		if (e != cudaSuccess) {
-			printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__, cudaGetErrorString(e)); getchar();
-			exit(0);
-		}
 
 		f <<< N_PARTICLES, N_PARTICLES+1 >>> (fy2, y3, 0.5*TIME_STEP, (dp->E), (dp->rs), (dp->ms), (dp->mu), &(x[3 * N_PARTICLES]), y2, 0.5 * TIME_STEP);
 		//vector_add <<< (6 * N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>> (x, fy2, y3, 0.5*TIME_STEP, 6 * N_PARTICLES);
@@ -475,20 +537,22 @@ int main(void)
 		f <<< N_PARTICLES, N_PARTICLES + 1 >>> (fy3, y4, TIME_STEP, (dp->E), (dp->rs), (dp->ms), (dp->mu), &(x[3 * N_PARTICLES]), y3, 0.5 * TIME_STEP);
 		//vector_add <<< (6 * N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>> (x, fy3, y4, TIME_STEP, 6 * N_PARTICLES);
 
-
-		//f(fy2_2, y2, t + delta_t / 2);
-		//f(fy3_2, y2, t + delta_t / 2);
 		f <<< N_PARTICLES, N_PARTICLES + 1 >>> (fy4_1, x1, 1.0 / 6 * TIME_STEP, (dp->E), (dp->rs), (dp->ms), (dp->mu), &(x[3 * N_PARTICLES]), y4, TIME_STEP);
 
+		// vector_add3 is equivalent to several vector_add
 		//vector_add <<< (6 * N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>>(x, fy1, x, 1.0 / 6 * TIME_STEP, 6 * N_PARTICLES);
 		//vector_add <<< (6 * N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>>(x, fy2, x, 2.0 / 6 * TIME_STEP, 6 * N_PARTICLES);
 		//vector_add <<< (6 * N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>>(x, fy3, x, 2.0 / 6 * TIME_STEP, 6 * N_PARTICLES);
 		//vector_add <<< (6 * N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>>(x, fy4_1, x, 1.0 / 6 * TIME_STEP, 6 * N_PARTICLES);
 		vector_add3 <<< (6 * N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>> (x, fy2, fy3, fy4_1, 6 * N_PARTICLES);
+		
+		
 		//vel_checker <<< (N_PARTICLES + BLOCKDIM - 1) / BLOCKDIM, BLOCKDIM >>> (x, x1,  N_PARTICLES);
-		//updatePositions(particles, current_time, TIME_STEP);
+
 		current_time += TIME_STEP;
 		
+		
+		// this should excute 100 times independent of T_total 
 		if (current_time / T_total > step*0.01)
 		{
 			cudaMemcpy(particles->xyzs, x, 3 * sizeof(float_value_t)*N_PARTICLES, cudaMemcpyDeviceToHost);
@@ -509,6 +573,7 @@ int main(void)
 					min_vz = particles->vs[3 * k + 2];
 				}
 				
+				// check if the solution is stable, should never excute
 				if (abs(particles->xyzs[3 * k]) > 0.01 || abs(particles->xyzs[3 * k + 1]) > 0.01 || abs(particles->xyzs[3 * k + 2]) > 0.01)
 				{
 					printf("blow up!!! time: %f\n", current_time);
@@ -516,6 +581,7 @@ int main(void)
 					break;
 				}
 				
+				// check if the solution is stable, should never excute
 				if (isnan(particles->xyzs[3 * k]) || isnan(particles->xyzs[3 * k]) || isnan(particles->xyzs[3 * k]))
 				{
 					printf("blowup!\n");
@@ -524,12 +590,17 @@ int main(void)
 				}
 				printf("%d paritcle: z = %e, r = %e, v = [%e %e %e]\n", k, particles->xyzs[3 * k + 2], particles->rs[k] , particles->vs[3 * k + 0], particles->vs[3 * k + 1], particles->vs[3 * k + 2]);
 			}
-			std::string coord_file = "xyzs.txt";
-			std::string v_file = "vxyzs.txt";
+			
+			// out put xyzs.txt, vxyzs.txt, and radius.txt for position, velocity and radius
+			char p_step[10];
+			sprintf(p_step,"%03d",step);
+      std::string coord_file = std::string("xyzs") + std::string(p_step) + std::string(".txt");
+      std::string v_file = std::string("vxyzs") + std::string(p_step) + std::string(".txt");
 			std::string radius_file = "radius.txt";
+      printf("writing coordinates to %s\n", coord_file.c_str());
 			writeFile(particles->xyzs, particles->n_particles, 3, coord_file);
-			writeFile(particles->rs, particles->n_particles, 1, radius_file);
-			writeFile(particles->vs, particles->n_particles, 3, v_file);
+			// writeFile(particles->rs, particles->n_particles, 1, radius_file);
+			// writeFile(particles->vs, particles->n_particles, 3, v_file);
 			printf("%d%% has been completed. min z = %e\t vz = %e\n", step,min_z, min_vz);
 			step++;
 		}
@@ -700,25 +771,33 @@ void readParticles(particles_t * particles)
 	particles->as = initFloatArray(particles->n_particles * 3);
 	particles->E = initFloatArray(particles->n_particles * 3);
 	particles->mu = initFloatArray(particles->n_particles * 3);
+  int rc;
 	for (int i = 0; i < N_PARTICLES; i++)
 	{
-		fscanf(fv, "%lf", &(particles->vs[i * 3]));
-		fscanf(fv, "%lf", &(particles->vs[i * 3 + 1]));
-		fscanf(fv, "%lf", &(particles->vs[i * 3 + 2]));
+    rc = 1;
+		rc *= fscanf(fv, "%lf", &(particles->vs[i * 3]));
+		rc *= fscanf(fv, "%lf", &(particles->vs[i * 3 + 1]));
+		rc *= fscanf(fv, "%lf", &(particles->vs[i * 3 + 2]));
 		(particles->vs)[i * 3] = (particles->vs)[i * 3]/omega_bar/C_bar;
 		(particles->vs)[i * 3 + 1] = (particles->vs)[i * 3 + 1] / omega_bar/C_bar;
 		(particles->vs)[i * 3 + 2] = (particles->vs)[i * 3 + 2] / omega_bar/C_bar;
 
 
-		fscanf(fx, "%lf", &(particles->xyzs[i * 3]));
-		fscanf(fx, "%lf", &(particles->xyzs[i * 3 + 1]));
-		fscanf(fx, "%lf", &(particles->xyzs[i * 3 + 2]));
+		rc *= fscanf(fx, "%lf", &(particles->xyzs[i * 3]));
+		rc *= fscanf(fx, "%lf", &(particles->xyzs[i * 3 + 1]));
+		rc *= fscanf(fx, "%lf", &(particles->xyzs[i * 3 + 2]));
 		(particles->xyzs)[i * 3] = (particles->xyzs)[i * 3] / C_bar;
 		(particles->xyzs)[i * 3 + 1] = (particles->xyzs)[i * 3 + 1] / C_bar;
 		(particles->xyzs)[i * 3 + 2] = (particles->xyzs)[i * 3 + 2] / C_bar;
 
 
-		fscanf(fr, "%lf", &(particles->rs[i]));
+		rc *= fscanf(fr, "%lf", &(particles->rs[i]));
+    if (rc == 0)
+    {
+      fprintf(stderr, "fscanf fails\n");
+      exit(1);
+    }
+
 		particles->ms[i] = 4.0 / 3.0*M_PI*particles->rs[i] * particles->rs[i] * particles->rs[i] *rho;
 		particles->E[i] = E_modulus;
 		particles->mu[i] = nu;

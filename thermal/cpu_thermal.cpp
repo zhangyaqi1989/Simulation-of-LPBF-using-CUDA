@@ -126,11 +126,15 @@ int main(int argc, char *argv[])
       particles->Ts[i] = temp_Ts[i];
     }
 
+    /*
     if (curr_steps % 1000 == 0) 
     {
       std::string temp_file = "outfiles/temperatures_" + std::to_string(curr_steps) + ".txt";
+      printf("saving temperatures to %s\n", temp_file.c_str());
       writeFile(particles->Ts, particles->n_particles, 1, temp_file);
+
     }
+    */
     curr_steps += 1;
 
     // printf("curr_steps = %d\n", curr_steps);

@@ -374,7 +374,7 @@ int main(int argc, char* argv[])
   laser_t* h_laser_ptr = initLaser(x_zero, y_zero, z_zero);
   printf("%s\n", "GPU simulation:");
   printf("number of particles = %d\n", h_particles_ptr->n_particles);
-  printf("Layer intensity = %f\n", h_laser_ptr->intensity);
+  printf("Laser intensity = %f\n", h_laser_ptr->intensity);
   printf("start simulation\n");
 
   laser_t* d_laser_ptr;

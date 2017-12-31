@@ -8,7 +8,6 @@ On Linux PC
 >> cd dynamics/
 >> make -f makefile-pc clean
 >> make -f makefile-pc
-
 ```
 On Euler (a multi-core supercomputer cluster)
 
