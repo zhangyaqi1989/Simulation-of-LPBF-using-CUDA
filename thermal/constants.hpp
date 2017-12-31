@@ -1,3 +1,6 @@
+/* written by Yaqi Zhang
+ * Dec 2017
+ */
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
@@ -11,11 +14,9 @@
 #define TABLE_LENGTH (0.001)
 #define TABLE_WIDTH (0.0005)
 
+// change the table dimension if more particles is used
 // #define TABLE_LENGTH (0.002)
 // #define TABLE_WIDTH (0.001)
-
-// #define TABLE_LENGTH (0.0005)
-// #define TABLE_WIDTH (0.0003)
 
 #define MAX_HEIGHT (0.0004)
 #define MIN_HEIGHT (0.0002)

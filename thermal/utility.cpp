@@ -1,3 +1,6 @@
+/* written by Yaqi Zhang
+ * Dec 2017
+ */
 #include"utility.hpp"
 #include "constants.hpp"
 #include<fstream>
@@ -19,6 +22,7 @@ void writeFile(float_value_t* array, int row, int col, std::string filename)
   myfile.close();
 }
 
+
 /* read file from an file */
 void readFile(std::string filename, float_value_t * array, int nrows, int ncols)
 {
@@ -36,6 +40,7 @@ void readFile(std::string filename, float_value_t * array, int nrows, int ncols)
   infile.close();
 }
 
+
 /* load particles from the output coord_file and radius_file of dynamic analysis */
 void loadParticlesAfterDynamics(std::string coord_file, std::string radius_file, particles_t* particles)
 {
@@ -52,5 +57,3 @@ void loadParticlesAfterDynamics(std::string coord_file, std::string radius_file,
     particles->Ts[i] = PREHEAT_T;
   }
 }
-
-

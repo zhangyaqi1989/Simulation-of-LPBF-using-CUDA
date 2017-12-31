@@ -1,10 +1,12 @@
-﻿#include <cuda.h>
+﻿/* written by Yaqi Zhang
+ * Dec 2017
+ */
+#include <cuda.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "particle.hpp"
 #include "constants.hpp"
-#include "dynamics.hpp"
 #include "utility.hpp"
 
 #define NUM_THREADS 1024

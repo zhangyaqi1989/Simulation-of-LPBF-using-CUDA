@@ -1,3 +1,6 @@
+/* written by Yaqi Zhang
+ * Dec 2017
+ */
 #include<iostream>
 #include<stdio.h>
 #include<stdlib.h>
@@ -5,7 +8,6 @@
 
 #include "particle.hpp"
 #include "constants.hpp"
-#include "dynamics.hpp"
 #include "thermal.hpp"
 #include "utility.hpp"
 

@@ -16,19 +16,15 @@ all: $(EXEC) makefile-pc
 	@echo Compiling $<...
 	$(CXX) $(CXXSTD) $(WFLAGS) $(OPT) -c $< -o $@
 
-cpu_thermal: cpu_thermal.o particle.o dynamics.o thermal.o utility.o
+cpu_thermal: cpu_thermal.o particle.o thermal.o utility.o
 	@echo Compiling executable $@...
 	$(CXX) $(CXXSTD) $(WFLAGS) $(OPT) -o $@ $^
-
-cuda_thermal.o: cuda_thermal.cu cuda_thermal.cuh
-	@echo Compiling cuda_thermal.o...
-	nvcc $(OPT) -c cuda_thermal.cu
 
 gpu_thermal.o: gpu_thermal.cu constants.hpp
 	@echo Compiling gpu_thermal.o...
 	nvcc $(OPT) -c gpu_thermal.cu
 
-gpu_thermal: gpu_thermal.o particle.o utility.o dynamics.o
+gpu_thermal: gpu_thermal.o particle.o utility.o
 	@echo Compiling executable $@...
 	nvcc $(OPT) -o $@ $^
 

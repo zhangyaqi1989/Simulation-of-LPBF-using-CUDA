@@ -1,3 +1,6 @@
+/* written by Yaqi Zhang
+ * Dec 2017
+ */
 #ifndef UTILITY_HPP
 #define UTILITY_HPP
 

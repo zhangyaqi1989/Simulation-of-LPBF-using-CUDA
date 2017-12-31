@@ -1,9 +1,13 @@
+/* written by Yaqi Zhang
+ * Dec 2017
+ */
 #include<stdlib.h>
 #include<stdio.h>
 #include<random>
 #include<math.h>
 #include "particle.hpp"
 #include "constants.hpp"
+
 
 /* memory operation */
 // free memory
@@ -45,6 +49,7 @@ void freeParticles(particles_t * particles)
   */
 }
 
+/* grow memory on the heap */
 void memgrowParticles(particles_t * particles)
 {
   particles->n_particles = N_PARTICLES;
@@ -75,6 +80,7 @@ float_value_t * allocFloatArray(int num_elements)
   float_value_t * array = new float_value_t[num_elements]();
   return array;
 }
+
 
 /* allocate and init float array on the heap with malloc/calloc */
 float_value_t* initFloatArray(int num_elements, bool zero)
@@ -109,6 +115,7 @@ float_value_t randomParticleDiameter(std::default_random_engine generator, std::
   return diameter;
 }
 */
+
 
 /* initialize particles */
 void initParticles(float_value_t length, float_value_t width, particles_t * particles)

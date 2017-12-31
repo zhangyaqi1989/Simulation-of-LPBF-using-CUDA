@@ -1,6 +1,8 @@
+/* written by Yaqi Zhang
+ * Dec 2017
+ */
 #ifndef PARTICLE_HPP
 #define PARTICLE_HPP
-// #include<iostream>
 typedef double float_value_t;
 
 typedef struct
