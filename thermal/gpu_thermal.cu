@@ -21,8 +21,9 @@ __const__ float_value_t C_LG = (C_LIQUID + C_GAS)/2.0 + VAPORIZATION_LATENT_HEAT
 __const__ float_value_t QUAD_ENVIORNMENT_T = ENVIORNMENT_T * ENVIORNMENT_T * ENVIORNMENT_T * ENVIORNMENT_T;
 __const__ float_value_t EPSILON_SB = EMMISIVITY*STEFAN_BOLTZMANN;
 
+
 // initialize laser
-  __host__ __device__
+__host__ __device__
 laser_t* initLaser(float_value_t x_zero, float_value_t y_zero, float_value_t z_zero)
 {
   laser_t * laser_ptr = (laser_t *) malloc(sizeof(laser_t));
@@ -33,6 +34,7 @@ laser_t* initLaser(float_value_t x_zero, float_value_t y_zero, float_value_t z_z
   return laser_ptr;
 }
 
+
 // update laser position
 __host__ __device__
 void updateLaser(laser_t * laser_ptr, float_value_t new_x, float_value_t new_y, float_value_t new_z)
@@ -42,16 +44,19 @@ void updateLaser(laser_t * laser_ptr, float_value_t new_x, float_value_t new_y, 
   laser_ptr->cz = new_z;
 }
 
+
 // print laser position
-  __host__ __device__
+__host__ __device__
 void printLaser(laser_t * laser_ptr)
 {
   printf("@(%.3f, %.3f, %.3f)\n", laser_ptr->cx, laser_ptr->cy, laser_ptr->cz);
 }
 
-// gaussian laser
-// H_{i} = alpha * I(r, z) * A_{i}
-  __device__
+
+/* gaussian laser
+ * H_{i} = alpha * I(r, z) * A_{i}
+ */
+__device__
 float_value_t computeH(laser_t * laser_ptr, particles_t * particles_ptr, int i)
 {
   float_value_t px = particles_ptr->xyzs[i*3];
@@ -66,25 +71,30 @@ float_value_t computeH(laser_t * laser_ptr, particles_t * particles_ptr, int i)
   return ABSORPTIVITY*I*particles_ptr->areas[i];
 }
 
-// compute I(r, z)
-// I(r, z) is the laser intensive
-// r and z : radial distance and depth from the beam center
-// I(r, z) = I_{0} * e^{-beta*z} * e^{-2r^{2}/omega^{2}}
-  __device__
+
+/* compute I(r, z)
+ * I(r, z) is the laser intensive
+ * r and z : radial distance and depth from the beam center
+ * I(r, z) = I_{0} * e^{-beta*z} * e^{-2r^{2}/omega^{2}}
+ */
+__device__
 float_value_t computeIntensity(laser_t * laser_ptr, float_value_t r, float_value_t z, float_value_t D)
 {
   float_value_t beta = computeBeta(D);
   return laser_ptr->intensity * pow(M_E, -beta*z) * pow(M_E, -2*r*r/(LASER_SPOT_SIZE*LASER_SPOT_SIZE));
 }
 
+
 // compute beta based on particle diameter
-  __device__
+__device__
 float_value_t computeBeta(float_value_t D)
 {
   return 3*(1 - POROSITY)/(2 * POROSITY * D);
 }
 
-  __device__
+
+/* compute capacity according to temperature */
+__device__
 float_value_t computeCapacity(float_value_t T)
 {
   if (T < MELTING_T - DELTA_T/2.0)
@@ -96,10 +106,12 @@ float_value_t computeCapacity(float_value_t T)
   else if (T <= BOILING_T + DELTA_T/2.0)
     return C_LG;
   else
-    return C_LG;//C_GAS;
+    return C_LG; //C_GAS;
 }
 
-  __device__
+
+/* compute distance between particle i and j */
+__device__
 float_value_t computeDistance(particles_t * particles_ptr, int i, int j)
 {
   float_value_t xi = particles_ptr->xyzs[i*3];
@@ -111,7 +123,9 @@ float_value_t computeDistance(particles_t * particles_ptr, int i, int j)
   return sqrt((xi - xj)*(xi - xj) + (yi - yj)*(yi - yj) + (zi - zj)*(zi - zj));
 }
 
-  __device__
+
+// compute contact area between particle i and j
+__device__
 float_value_t computeContactArea(float_value_t d, float_value_t Ri, float_value_t Rj)
 {
   float_value_t cos_value = (Rj*Rj - Ri*Ri - d*d)/(-2*d*Ri);
@@ -120,28 +134,39 @@ float_value_t computeContactArea(float_value_t d, float_value_t Ri, float_value_
   return M_PI*h*h;
 }
 
-  __device__
+
+// compute radiation
+__device__
 float_value_t computeRadiation(particles_t * particles_ptr, int index)
 {
   float_value_t T = particles_ptr->Ts[index];
   return EPSILON_SB * (T*T*T*T - QUAD_ENVIORNMENT_T) * particles_ptr->areas[index];
 }
 
-  __device__
+
+// compute convection
+__device__
 float_value_t computeConvection(particles_t * particles_ptr, int index)
 {
   return HEAT_TRANSFER_COEFFICIENT * (particles_ptr->Ts[index] - ENVIORNMENT_T) * particles_ptr->areas[index];
 }
 
+
+// compute conduction to floor (not used)
 __device__
 float_value_t computeConductionToFloor(particles_t * particles_ptr, int i)
 {
+  float_value_t z = particles_ptr->xyzs[i*3 + 2];
+  float_value_t r = particles_ptr->rs[i];
+  if (fabs(z - r) > 1e-12)  return 0.0;
   float_value_t area = FLOOR_CONTACT_RATIO * particles_ptr->areas[i];
   float_value_t T = particles_ptr->Ts[i];
   return CONDUCTIVITY * (T - TABLE_T) / (particles_ptr->rs[i]) * area;
 }
 
-  __device__
+
+// compute conduction
+__device__
 float_value_t computeConduction(particles_t * particles_ptr, int i, int j)
 {
   float_value_t d = computeDistance(particles_ptr, i, j);

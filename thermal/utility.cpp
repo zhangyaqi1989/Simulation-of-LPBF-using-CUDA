@@ -19,6 +19,7 @@ void writeFile(float_value_t* array, int row, int col, std::string filename)
     }
     myfile << "\n";
   }
+  std::cout << "Writing data to " << filename << ".\n";
   myfile.close();
 }
 
