@@ -8,7 +8,7 @@
 #define DYNAMIC_TIME_STEP (2E-8)
 #define GRAVITY (9.81)
 #define DENSITY (7952.0)
-#define SCAN_LENGTH_RATIO (0.2)
+#define SCAN_LENGTH_RATIO (1.0)
 
 // build platform dimension
 #define TABLE_LENGTH (0.001)

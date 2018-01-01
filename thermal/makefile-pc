@@ -16,7 +16,7 @@ all: $(EXEC) makefile-pc
 	@echo Compiling $<...
 	$(CXX) $(CXXSTD) $(WFLAGS) $(OPT) -c $< -o $@
 
-cpu_thermal: cpu_thermal.o particle.o thermal.o utility.o
+cpu_thermal: cpu_thermal.o particle.o thermal.o utility.o constants.hpp
 	@echo Compiling executable $@...
 	$(CXX) $(CXXSTD) $(WFLAGS) $(OPT) -o $@ $^
 
