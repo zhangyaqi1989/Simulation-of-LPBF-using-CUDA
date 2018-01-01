@@ -1,7 +1,8 @@
+/* written by Xin Liu
+ * Dec 2017
+ */
+
 // deposition_sim.cpp : Defines the entry point for the console application.
-// Xin Liu
-
-
 #include <string.h> 
 #include <iostream>
 #include <fstream>

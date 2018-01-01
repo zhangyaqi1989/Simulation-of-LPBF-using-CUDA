@@ -1,3 +1,6 @@
+/* written by Xin Liu
+ * Dec 2017
+ */
 #pragma once
 
 #include <chrono>
