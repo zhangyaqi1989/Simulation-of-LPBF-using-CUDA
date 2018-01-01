@@ -592,14 +592,16 @@ int main(void)
 			}
 			
 			// out put xyzs.txt, vxyzs.txt, and radius.txt for position, velocity and radius
-			char p_step[10];
-			sprintf(p_step,"%03d",step);
-      std::string coord_file = std::string("xyzs") + std::string(p_step) + std::string(".txt");
-      std::string v_file = std::string("vxyzs") + std::string(p_step) + std::string(".txt");
+			// char p_step[10];
+			// sprintf(p_step,"%03d",step);
+      // std::string coord_file = std::string("xyzs") + std::string(p_step) + std::string(".txt");
+      // std::string v_file = std::string("vxyzs") + std::string(p_step) + std::string(".txt");
+      std::string coord_file = "xyzs.txt";
+      std::string v_file = "cxyzs.txt";
 			std::string radius_file = "radius.txt";
       printf("writing coordinates to %s\n", coord_file.c_str());
 			writeFile(particles->xyzs, particles->n_particles, 3, coord_file);
-			// writeFile(particles->rs, particles->n_particles, 1, radius_file);
+			writeFile(particles->rs, particles->n_particles, 1, radius_file);
 			// writeFile(particles->vs, particles->n_particles, 3, v_file);
 			printf("%d%% has been completed. min z = %e\t vz = %e\n", step,min_z, min_vz);
 			step++;
@@ -677,6 +679,7 @@ void writeFile(float_value_t* array, int row, int col, std::string filename)
 		}
 		myfile << "\n";
 	}
+  std::cout << "Writing data to " << filename << ".\n";
 	myfile.close();
 }
 
