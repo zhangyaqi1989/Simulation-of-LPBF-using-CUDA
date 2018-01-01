@@ -8,6 +8,9 @@ In this project, both dynamic and thermal simulation [1] of laser powder bed fus
 [![Thermal Simulation](animation/thermal/image00025.png)](https://youtu.be/KLpTbSgZREE)
 ## 2. Dynamic Simulation
 ### 2.1 Build Instructions
+
+**Successful on Linux platform with gcc 6.4.0 and nvcc 9.0.**
+
 On Linux PC
 
 ```
@@ -46,6 +49,9 @@ Both CPU and GPU version will
 
 ## 3. Thermal Simulation
 ### 3.1 Build Instructions
+
+**Successful on Linux platform with gcc 6.4.0 and nvcc 9.0.**
+
 On Linux PC
 
 ```
