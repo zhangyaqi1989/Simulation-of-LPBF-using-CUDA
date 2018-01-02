@@ -1,0 +1,6 @@
+Group Members: Yaqi Zhang (zhang623@wisc.edu), Xin Liu (xliu632@wisc.edu)
+
+Demos and implementation detail are in the below GitHub repository.
+URL to Final Project GitHub repo: https://github.com/zhangyaqi1989/Simulation-of-LPBF-using-CUDA
+Participate in Rescale competition for Surface tablet: Yes/No Yes
+
