@@ -1,0 +1,4 @@
+Final Project Author[s]: Yaqi Zhang, Xin Liu
+URL to Final Project GitHub repo: https://github.com/zhangyaqi1989/Simulation-of-LPBF-using-CUDA
+Link to Report & Presentation: https://github.com/zhangyaqi1989/Simulation-of-LPBF-using-CUDA/tree/master/report_and_presentation
+I'm ok with having all the Final Project information (report/presentation/code) in the open domain: yes
