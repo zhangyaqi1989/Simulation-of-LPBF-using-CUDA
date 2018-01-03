@@ -1,0 +1,6 @@
+Final Project Author[s]: FirstName1 LastName1, FirstName2 LastName2, FirstName3 LastName3, etc.
+URL to Final Project GitHub repo: provideaddresshere
+Link to Report & Presentation: providelinkhere
+I'm ok with having all the Final Project information (report/presentation/code) in the open domain: yes/no [choose one].
+
+NOTE: upon filling in the information, save this file under the name infoRescale-FirstName1LastName1.txt. For instance, if I was to provide this file, it'd be called infoRescale-DanNegrut.txt. The plan is to collect all these txt files and email to Rescale.
